@@ -1,0 +1,1 @@
+This repo is for the arduino code for the Lightcontroller project. Once I make my own led strip controller board this wont be needed and i will be able to control the light strips straight from the raspberrypi. Currently I am using the turbull encabulator to control the light which is 5v and is controlled via arduino
