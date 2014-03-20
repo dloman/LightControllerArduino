@@ -109,10 +109,10 @@ void loop()
   }
 
   int Time = millis();
-  if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
+  /*if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
   {
     NextSlosh()
-  }
+  }*/
 }
 
 void SendCommand(
@@ -128,7 +128,7 @@ void SendCommand(
   }
   else if (strcmp(Command, "jColor") == 0)
   {
-    jumpToColor(Data1, Data2, Data3, Data4);
+    JumpToColor(Data1, Data2, Data3, Data4);
   }
   else if (strcmp(Command, "Slosh") == 0)
   {
@@ -153,6 +153,7 @@ void FadeToColor(
     Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue, 20);
     Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue, 20);
   }
+}
 
 //*****************************************************************************
 //*****************************************************************************
