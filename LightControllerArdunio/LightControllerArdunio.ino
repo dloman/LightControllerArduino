@@ -169,8 +169,8 @@ void JumpToColor(
   Blue  = atoi(Data4)- Alpha;
   for (int i = 1; i < 5; i++)
   {
-    Encabulator.stripBankA.jumpHeaderToRGB(i, Red, Green, Blue);
-    Encabulator.stripBankB.jumpHeaderToRGB(i, Red, Green, Blue);
+    Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue,4);
+    Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue,4);
   }
 }
 
