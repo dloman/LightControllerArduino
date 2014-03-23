@@ -5,6 +5,8 @@
 
 #define SOP '<'
 #define EOP '>'
+#define MAX(a, b) ((a > b) ? a : b)
+#define MIN(a, b) ((a < b) ? a : b)
 
 bool Started = false;
 bool Ended = false;
@@ -165,8 +167,11 @@ void JumpToColor(
 {
   Alpha = 255 - atoi(Data1);
   Red   = atoi(Data2) - Alpha;
+  Red   = MAX(0, Red);
   Green = atoi(Data3)- Alpha;
+  Green   = MAX(0, Green);
   Blue  = atoi(Data4)- Alpha;
+  Blue   = MAX(0, Blue);
   for (int i = 1; i < 5; i++)
   {
     Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue,4);
