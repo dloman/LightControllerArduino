@@ -3,8 +3,13 @@
 #include <Wire.h>
 #include <avr/pgmspace.h>
 
+
 #define SOP '<'
 #define EOP '>'
+
+#define MIN(a, b) ((a < b) ? a : b)
+#define MAX(a, b) ((a > b) ? a : b)
+#define SLOSHVALUE 23
 
 bool Started = false;
 bool Ended = false;
@@ -14,10 +19,11 @@ int Red   = 0;
 int Green = 0;
 int Blue  = 0;
 int SloshFrequency   = 0;
-int SloshTimeStep    = 0;
+int SloshTimeStep    = 300;
 bool SloshVertical   = true;
 bool SloshHorizontal = true;
 bool Slosh;
+int LastSloshTime = 0;
 
 char inData[80];
 byte index;
@@ -109,10 +115,11 @@ void loop()
   }
 
   int Time = millis();
-  /*if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
+  if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
   {
-    NextSlosh()
-  }*/
+    LastSloshTime = Time;
+    NextSlosh();
+  }
 }
 
 void SendCommand(
@@ -190,13 +197,52 @@ void StartSlosh(
     Encabulator.stripBankA.fadeHeaderToRGB(i, 0, 0, 0, 10);
     Encabulator.stripBankB.fadeHeaderToRGB(i, 0, 0, 0, 10);
   }
-  Red = 0; Blue = 0; Green = 0;
+  Red = 255; Blue = 0; Green = 0;
+}
+
+
+
+//*****************************************************************************
+//*****************************************************************************
+void GetNextColor(int& tRed, int& tGreen, int& tBlue)
+{
+    if ((tBlue == 255) && (tGreen == 0))
+    {
+      tRed -= SLOSHVALUE;
+      tRed = MAX(tRed, 0);
+    }
+    if ((tBlue == 0) && tGreen == 255)
+    {
+      tRed += SLOSHVALUE;
+      tRed = MIN(tRed, 255);
+    }
+    if ((tGreen == 255) && (tRed == 0))
+    {
+      tBlue -= SLOSHVALUE;
+      tBlue = MAX(tBlue, 0);
+    }
+    if ((tRed == 255) && (tGreen ==0))
+    {
+      tBlue += SLOSHVALUE;
+      tBlue = MIN(tBlue, 255);
+    }
+    if ((tRed == 255) && (tBlue ==0))
+    {
+     tGreen -= SLOSHVALUE;
+     tGreen = MAX(tGreen, 0);
+    }
+    if ((tBlue == 255) && (tRed == 0))
+    {
+     tGreen += SLOSHVALUE;
+     tGreen = MIN(tGreen, 255);
+    }
 }
 
 //*****************************************************************************
 //*****************************************************************************
 void NextSlosh()
 {
-//  Encabulator.stripBankA.fadeHeaderToRGB(0
+  GetNextColor(Red, Green, Blue);
+  Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
 }
 
