@@ -19,10 +19,10 @@ int Red   = 0;
 int Green = 0;
 int Blue  = 0;
 int SloshFrequency   = 0;
-int SloshTimeStep    = 300;
+int SloshTimeStep    = 500;
 bool SloshVertical   = true;
 bool SloshHorizontal = true;
-bool Slosh;
+bool Slosh =false;
 int LastSloshTime = 0;
 
 char inData[80];
@@ -88,6 +88,7 @@ void loop()
   // packet marker arrived. Which is it?
   if (Started && Ended)
   {
+    Slosh = false;
     // The end of packet marker arrived. Process the packet
     char* Command = strtok(inData, ",");
 
@@ -115,10 +116,16 @@ void loop()
   }
 
   int Time = millis();
-  if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
+  if (Slosh)
   {
+    if (abs(LastSloshTime - Time) > SloshTimeStep)
+    {
     LastSloshTime = Time;
     NextSlosh();
+    }
+    else
+    {
+    }
   }
 }
 
@@ -139,6 +146,7 @@ void SendCommand(
   }
   else if (strcmp(Command, "Slosh") == 0)
   {
+    Encabulator.stripBankA.fadeHeaderToRGB(0, 255, 0, 0, 4);
     StartSlosh(Data1,Data2,Data3);
   }
 }
@@ -153,8 +161,11 @@ void FadeToColor(
 {
   Alpha = 255 - atoi(Data1);
   Red   = atoi(Data2) - Alpha;
+  Red   = MAX(0, Red);
   Green = atoi(Data3)- Alpha;
+  Green   = MAX(0, Green);
   Blue  = atoi(Data4)- Alpha;
+  Blue   = MAX(0, Blue);
   for (int i = 1; i < 5; i++)
   {
     Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue, 20);
@@ -195,6 +206,11 @@ void StartSlosh(
   SloshHorizontal = strcasecmp(Data1, "True");
   SloshFrequency  = atoi(Data3);
   Slosh = true;
+  for (int i = 1; i < 5; i++)
+  {
+    Encabulator.stripBankA.fadeHeaderToRGB(i, 0, 0, 255, 10);
+    Encabulator.stripBankB.fadeHeaderToRGB(i, 0, 0, 255, 10);
+  }
   for (int i = 1; i < 5; i++)
   {
     Encabulator.stripBankA.fadeHeaderToRGB(i, 0, 0, 0, 10);
@@ -246,6 +262,11 @@ void GetNextColor(int& tRed, int& tGreen, int& tBlue)
 void NextSlosh()
 {
   GetNextColor(Red, Green, Blue);
-  Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
+  Serial.print(Red);
+  Serial.print('\t');
+  Serial.print(Green);
+  Serial.print('\t');
+  Serial.println(Blue);
+  Encabulator.stripBankA.fadeHeaderToRGB(1, Red, Green, Blue, 20);
 }
 
