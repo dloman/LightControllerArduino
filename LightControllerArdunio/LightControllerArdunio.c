@@ -19,15 +19,6 @@ int mAlpha[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int mRed[8]   = {0, 0, 0, 0, 0, 0, 0, 0};
 int mGreen[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int mBlue[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
-int SloshFrequency   = 0;
-int SloshTimeStep    = 300;
-bool SloshVertical   = true;
-bool SloshHorizontal = true;
-bool Slosh;
-int LastSloshTime = 0;
-
-bool mLarsonDirection = true;
-int mLarsonPosition = 0;
 
 enum LarsonColor {
   eRed,
@@ -35,14 +26,26 @@ enum LarsonColor {
   eBlue,
 };
 
-enum SloshType {
+enum Mode {
   eAllFade,
   eRollingColor,
   eLarsonScan,
-  eColorWheel
+  eColorWheel,
+  eColorRing
 };
+//Larson Scan Vars
 LarsonColor mLarsonColor = eRed;
-SloshType mSloshType = eRollingColor;
+bool mLarsonDirection = true;
+int mLarsonPosition = 0;
+
+//Rolling Color Vars
+Mode mMode = eRollingColor;
+int SloshFrequency   = 0;
+int SloshTimeStep    = 300;
+bool SloshVertical   = true;
+bool SloshHorizontal = true;
+bool Slosh;
+int LastSloshTime = 0;
 
 /*
 char inData[80];
@@ -159,7 +162,7 @@ void SendCommand(
   }
   else if (strcmp(Command, "Slosh") == 0)
   {
-    StartSlosh(Data1,Data2,Data3);
+    StartMode(Data1,Data2,Data3);
   }
 }
 
@@ -207,12 +210,10 @@ void JumpToColor(
   }
 }
 */
+
 //*****************************************************************************
 //*****************************************************************************
-void StartSlosh(
-  char* Data1,
-  char* Data2,
-  char* Data3)
+void StartRoll()
 {
   //SloshFrequency  = atoi(Data3);
   Slosh = true;
@@ -228,7 +229,53 @@ void StartSlosh(
   }
 }
 
+//*****************************************************************************
+//*****************************************************************************
+void StartFade()
+{
+  StartRoll();
+  for (int i = 1; i < 8; i++)
+  {
+    mRed[i] = mRed[0]; mGreen[i] = mGreen[0]; mBlue[i] = mBlue[0];
+  }
+}
 
+//*****************************************************************************
+//*****************************************************************************
+void StartLarsonScan()
+{
+  LarsonColor mLarsonColor = eRed;
+  bool mLarsonDirection = true;
+  int mLarsonPosition = 0;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void StartColorWheel()
+{
+  mRed[0] = 255; mGreen[0] =   0; mBlue[0] =   0;
+  mRed[1] =   0; mGreen[1] = 255; mBlue[1] = 255;
+  mRed[2] = 255; mGreen[2] =   0; mBlue[2] = 255;
+  mRed[3] =   0; mGreen[3] = 255; mBlue[3] =   0;
+  mRed[4] = 128; mGreen[4] = 128; mBlue[4] = 128;
+  mRed[5] =   0; mGreen[5] =   0; mBlue[5] = 255;
+  mRed[6] = 255; mGreen[6] = 255; mBlue[6] =   0;
+  mRed[7] = 128; mGreen[7] = 255; mBlue[7] = 128;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void StartColorRing()
+{
+  mRed[0] = 255; mGreen[0] =   0; mBlue[0] =   0;
+  mRed[1] =   0; mGreen[1] =   0; mBlue[1] =   0;
+  mRed[2] = 255; mGreen[2] =   0; mBlue[2] = 255;
+  mRed[3] =   0; mGreen[3] =   0; mBlue[3] =   0;
+  mRed[4] =   0; mGreen[4] =   0; mBlue[4] = 255;
+  mRed[5] =   0; mGreen[5] =   0; mBlue[5] =   0;
+  mRed[6] =   0; mGreen[6] = 255; mBlue[6] =   0;
+  mRed[7] =   0; mGreen[7] =   0; mBlue[7] =   0;
+}
 
 //*****************************************************************************
 //*****************************************************************************
@@ -297,6 +344,7 @@ void AllFade()
 
   //Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
 }
+
 //*****************************************************************************
 //*****************************************************************************
 void RollingColor()
@@ -308,6 +356,18 @@ void RollingColor()
   MoveLeft(OldRed, OldGreen, OldBlue);
   //Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
 }
+
+//*****************************************************************************
+//*****************************************************************************
+void ColorWheel()
+{
+  int OldRed = mRed[0];
+  int OldGreen = mGreen[0];
+  int OldBlue = mBlue[0];
+  mRed[0] = mRed[7]; mGreen[0] = mGreen[7]; mBlue[0]= mBlue[7];
+  MoveLeft(OldRed, OldGreen, OldBlue);
+}
+
 //*****************************************************************************
 //*****************************************************************************
 void NextLarsonPosition()
@@ -413,7 +473,7 @@ void LarsonScan()
 //*****************************************************************************
 void NextSlosh()
 {
-  switch (mSloshType)
+  switch (mMode)
   {
     case eAllFade:
       AllFade();
@@ -425,7 +485,43 @@ void NextSlosh()
       LarsonScan();
       break;
     case eColorWheel:
-      //do stuff
+      ColorWheel();
+      break;
+    case eColorRing:
+      ColorWheel();
+      break;
+  }
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void StartMode(
+  char* Data1,
+  char* Data2,
+  char* Data3)
+{
+  //TODO Change this to read input from packet
+  switch (mMode)
+  {
+    case eAllFade:
+      StartFade();
+      mMode = eAllFade;
+      break;
+    case eRollingColor:
+      StartRoll();
+      mMode = eRollingColor;
+      break;
+    case eLarsonScan:
+      StartLarsonScan();
+      mMode = eLarsonScan;
+      break;
+    case eColorWheel:
+      StartColorWheel();
+      mMode = eColorWheel;
+      break;
+    case eColorRing:
+      StartColorRing();
+      mMode = eColorRing;
       break;
   }
 }
@@ -463,9 +559,9 @@ void PrintValues()
 //*****************************************************************************
 int main()
 {
-  mSloshType = eAllFade;
+  mMode = eColorRing;
   char* tits;
-  StartSlosh(tits,tits,tits);
+  StartMode(tits,tits,tits);
   PrintValues();
   for (int i = 0; i<49; i++)
   {
