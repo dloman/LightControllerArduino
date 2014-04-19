@@ -1,9 +1,6 @@
-
-//#include <Encabulator.h>
-//#include <Wire.h>
-//#include <avr/pgmspace.h>
-#include <iostream>
-
+#include <Encabulator.h>
+#include <Wire.h>
+#include <avr/pgmspace.h>
 
 #define SOP '<'
 #define EOP '>'
@@ -47,10 +44,13 @@ bool SloshHorizontal = true;
 bool Slosh;
 int LastSloshTime = 0;
 
-/*
 char inData[80];
 byte index;
-void setup() {
+
+//*****************************************************************************
+//*****************************************************************************
+void setup()
+{
   Serial.begin(9600);
   Encabulator.upUpDownDownLeftRightLeftRightBA();
   // jump all 12V RGB headers up to white
@@ -76,6 +76,8 @@ void setup() {
   delay(500);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void loop()
 {
   // Read all serial data available, as fast as possible
@@ -145,6 +147,8 @@ void loop()
   }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void SendCommand(
   char* Command,
   char* Data1,
@@ -160,9 +164,9 @@ void SendCommand(
   {
     JumpToColor(Data1, Data2, Data3, Data4);
   }
-  else if (strcmp(Command, "Slosh") == 0)
+  else if (strcmp(Command, "Mode") == 0)
   {
-    StartMode(Data1,Data2,Data3);
+    StartMode(Data1,Data2);
   }
 }
 
@@ -209,19 +213,26 @@ void JumpToColor(
     Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue,4);
   }
 }
-*/
+
+//*****************************************************************************
+//*****************************************************************************
+void WriteColor()
+{
+  for (int i = 0; i < 4; i++)
+  {
+    Encabulator.stripBankA.fadeHeaderToRGB(i+1, mRed[i], mGreen[i], mBlue[i],4);
+    Encabulator.stripBankB.fadeHeaderToRGB(
+      i+1,
+      mRed[i+4],
+      mGreen[i+4],
+      mBlue[i+4],4);
+  }
+}
 
 //*****************************************************************************
 //*****************************************************************************
 void StartRoll()
 {
-  //SloshFrequency  = atoi(Data3);
-  Slosh = true;
-  for (int i = 1; i < 5; i++)
-  {
-    //Encabulator.stripBankA.fadeHeaderToRGB(i, 0, 0, 0, 10);
-    //Encabulator.stripBankB.fadeHeaderToRGB(i, 0, 0, 0, 10);
-  }
   mRed[0] = 255; mBlue[0] = 0; mGreen[0] = 0;
   for (int i = 1; i < 8; i++)
   {
@@ -341,8 +352,6 @@ void AllFade()
   {
     mRed[i] = mRed[0]; mGreen[i] = mGreen[0]; mBlue[i]= mBlue[0];
   }
-
-  //Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
 }
 
 //*****************************************************************************
@@ -354,7 +363,6 @@ void RollingColor()
   int OldBlue = mBlue[0];
   GetNextColor(mRed[0], mGreen[0], mBlue[0],SLOSHVALUE);
   MoveLeft(OldRed, OldGreen, OldBlue);
-  //Encabulator.stripBankA.fadeHeaderToRGB(0, Red, Green, Blue, 20);
 }
 
 //*****************************************************************************
@@ -497,77 +505,34 @@ void NextSlosh()
 //*****************************************************************************
 void StartMode(
   char* Data1,
-  char* Data2,
-  char* Data3)
+  char* Data2)
 {
   //TODO Change this to read input from packet
-  switch (mMode)
+  SloshFrequency  = atoi(Data2);
+  if (strcmp(Data1,"AllFade") == 0)
   {
-    case eAllFade:
-      StartFade();
-      mMode = eAllFade;
-      break;
-    case eRollingColor:
-      StartRoll();
-      mMode = eRollingColor;
-      break;
-    case eLarsonScan:
+    StartFade();
+    mMode = eAllFade;
+  }
+  else if (strcmp(Data1,"RollingColor") == 0)
+  {
+    StartRoll();
+    mMode = eRollingColor;
+  }
+  else if (strcmp(Data1,"LarsonScan") == 0)
+  {
       StartLarsonScan();
       mMode = eLarsonScan;
-      break;
-    case eColorWheel:
+  }
+  else if (strcmp(Data1,"ColorWheel") == 0)
+  {
       StartColorWheel();
       mMode = eColorWheel;
-      break;
-    case eColorRing:
+  }
+  else if (strcmp(Data1,"ColorRing") == 0)
+  {
       StartColorRing();
       mMode = eColorRing;
-      break;
   }
-}
-
-//*****************************************************************************
-//*****************************************************************************
-void PrintValues()
-{
-  std::cout << "-----------------------------------------------------" << std::endl;
-  std::cout << "-----------------------------------------------------" << std::endl;
-  std::cout << "Red = ";
-  for (int i = 0; i < 8; ++i)
-  {
-    std::cout << mRed[i] << ", ";
-  }
-  std::cout << std::endl;
-
-  std::cout << "Green = ";
-  for (int i = 0; i < 8; ++i)
-  {
-    std::cout << mGreen[i] << ", ";
-  }
-  std::cout << std::endl;
-
-  std::cout << "Blue = ";
-  for (int i = 0; i < 8; ++i)
-  {
-    std::cout << mBlue[i] << ", ";
-  }
-  std::cout << std::endl << std::endl;
-}
-
-
-//*****************************************************************************
-//*****************************************************************************
-int main()
-{
-  mMode = eColorRing;
-  char* tits;
-  StartMode(tits,tits,tits);
-  PrintValues();
-  for (int i = 0; i<49; i++)
-  {
-    NextSlosh();
-    PrintValues();
-  }
-  return 0;
 }
 
