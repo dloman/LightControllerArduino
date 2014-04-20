@@ -38,10 +38,10 @@ int mLarsonPosition = 0;
 //Rolling Color Vars
 Mode mMode = eRollingColor;
 int SloshFrequency   = 0;
-int SloshTimeStep    = 300;
+int SloshTimeStep    = 500;
 bool SloshVertical   = true;
 bool SloshHorizontal = true;
-bool Slosh;
+bool Slosh =false;
 int LastSloshTime = 0;
 
 char inData[80];
@@ -113,6 +113,7 @@ void loop()
   // packet marker arrived. Which is it?
   if (Started && Ended)
   {
+    Slosh = false;
     // The end of packet marker arrived. Process the packet
     char* Command = strtok(inData, ",");
 
@@ -140,10 +141,16 @@ void loop()
   }
 
   int Time = millis();
-  if (Slosh && abs(LastSloshTime - Time) > SloshTimeStep)
+  if (Slosh)
   {
+    if (abs(LastSloshTime - Time) > SloshTimeStep)
+    {
     LastSloshTime = Time;
     NextSlosh();
+    }
+    else
+    {
+    }
   }
 }
 
@@ -437,7 +444,7 @@ void NextLarsonColor()
   }
 }
 
-  //*****************************************************************************
+//*****************************************************************************
 //*****************************************************************************
 void LarsonDraw(int* Color)
 {
