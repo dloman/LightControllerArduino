@@ -37,12 +37,10 @@ int mLarsonPosition = 0;
 
 //Rolling Color Vars
 Mode mMode = eRollingColor;
-int SloshFrequency   = 0;
-int SloshTimeStep    = 500;
-bool SloshVertical   = true;
-bool SloshHorizontal = true;
-bool Slosh =false;
-int LastSloshTime = 0;
+int mModeFrequency   = 0;
+int mModeTimeStep    = 500;
+bool mIsFancyMode =false;
+int mLastModeTime = 0;
 
 char inData[80];
 byte index;
@@ -113,7 +111,7 @@ void loop()
   // packet marker arrived. Which is it?
   if (Started && Ended)
   {
-    Slosh = false;
+    mIsFancyMode = false;
     // The end of packet marker arrived. Process the packet
     char* Command = strtok(inData, ",");
 
@@ -141,15 +139,12 @@ void loop()
   }
 
   int Time = millis();
-  if (Slosh)
+  if (mIsFancyMode)
   {
-    if (abs(LastSloshTime - Time) > SloshTimeStep)
+    if (abs(mLastModeTime - Time) > mModeTimeStep)
     {
-    LastSloshTime = Time;
-    NextSlosh();
-    }
-    else
-    {
+    mLastModeTime = Time;
+    NextMode();
     }
   }
 }
@@ -486,7 +481,7 @@ void LarsonScan()
 
 //*****************************************************************************
 //*****************************************************************************
-void NextSlosh()
+void NextMode()
 {
   switch (mMode)
   {
@@ -506,6 +501,7 @@ void NextSlosh()
       ColorWheel();
       break;
   }
+  WriteColor();
 }
 
 //*****************************************************************************
@@ -514,12 +510,13 @@ void StartMode(
   char* Data1,
   char* Data2)
 {
-  //TODO Change this to read input from packet
-  SloshFrequency  = atoi(Data2);
+  mIsFancyMode = true;
+  mModeFrequency  = atoi(Data2);
   if (strcmp(Data1,"AllFade") == 0)
   {
     StartFade();
     mMode = eAllFade;
+ 
   }
   else if (strcmp(Data1,"RollingColor") == 0)
   {
