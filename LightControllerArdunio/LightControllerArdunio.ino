@@ -8,6 +8,7 @@
 #define MIN(a, b) ((a < b) ? a : b)
 
 #define SLOSHVALUE 23
+#define LASERPIN 11
 
 bool Started = false;
 bool Ended = false;
@@ -49,6 +50,8 @@ byte index;
 //*****************************************************************************
 void setup()
 {
+  pinMode(LASERPIN, OUTPUT);
+  digitalWrite(LASERPIN, HIGH);
   Serial.begin(9600);
   Encabulator.upUpDownDownLeftRightLeftRightBA();
   // jump all 12V RGB headers up to white
@@ -169,6 +172,24 @@ void SendCommand(
   else if (strcmp(Command, "Mode") == 0)
   {
     StartMode(Data1,Data2);
+  }
+  else if (strcmp(Command, "Laser") == 0)
+  {
+    ToggleLaser(Data1);
+  }
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void ToggleLaser(char* Data1)
+{
+  if(atoi(Data1))
+  {
+    digitalWrite(LASERPIN, LOW);
+  }
+  else
+  {
+    digitalWrite(LASERPIN, HIGH);
   }
 }
 
@@ -516,7 +537,6 @@ void StartMode(
   {
     StartFade();
     mMode = eAllFade;
- 
   }
   else if (strcmp(Data1,"RollingColor") == 0)
   {
