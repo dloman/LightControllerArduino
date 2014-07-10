@@ -114,7 +114,6 @@ void loop()
   // packet marker arrived. Which is it?
   if (Started && Ended)
   {
-    mIsFancyMode = false;
     // The end of packet marker arrived. Process the packet
     char* Command = strtok(inData, ",");
 
@@ -195,12 +194,14 @@ void ToggleLaser(char* Data1)
 
 //*****************************************************************************
 //*****************************************************************************
-void FadeToColor(
+void ChangeColor(
   char* Data1,
   char* Data2,
   char* Data3,
-  char* Data4)
+  char* Data4,
+  int Speed)
 {
+  mIsFancyMode = false;
   int Alpha = 255 - atoi(Data1);
   int Red   = atoi(Data2) - Alpha;
   Red   = MAX(0, Red);
@@ -210,8 +211,8 @@ void FadeToColor(
   Blue   = MAX(0, Blue);
   for (int i = 1; i < 5; i++)
   {
-    Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue, 20);
-    Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue, 20);
+    Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue, Speed);
+    Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue, Speed);
   }
 }
 
@@ -223,18 +224,18 @@ void JumpToColor(
   char* Data3,
   char* Data4)
 {
-  int Alpha = 255 - atoi(Data1);
-  int Red   = atoi(Data2) - Alpha;
-  Red   = MAX(0, Red);
-  int Green = atoi(Data3)- Alpha;
-  Green   = MAX(0, Green);
-  int Blue  = atoi(Data4)- Alpha;
-  Blue   = MAX(0, Blue);
-  for (int i = 1; i < 5; i++)
-  {
-    Encabulator.stripBankA.fadeHeaderToRGB(i, Red, Green, Blue,4);
-    Encabulator.stripBankB.fadeHeaderToRGB(i, Red, Green, Blue,4);
-  }
+  ChangeColor(Data1, Data2, Data3, Data4, 4);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void FadeToColor(
+  char* Data1,
+  char* Data2,
+  char* Data3,
+  char* Data4)
+{
+  ChangeColor(Data1, Data2, Data3, Data4, 20);
 }
 
 //*****************************************************************************
